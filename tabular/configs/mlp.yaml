@@ -1,0 +1,36 @@
+default:
+  data_path: Taiji_dataset         # root folder containing Subject*/ modality .npy files
+  subject: all                     # which subjects to use ('all' or comma-separated list like "1,2,3")
+  log_path: log                    # parent directory for logs (created if missing)
+  results_path: Results            # where experiment folders and stats are written
+  save_model: false                # if true, save a trained model per subject
+  model_path: models               # subfolder under results_path for saved models
+  fusion: early                    # how to combine modalities; only 'early' is implemented
+  keypose_csv: assets/keyposes.csv # CSV defining keypose centers per (subject, take)
+  pose_info_json: assets/pose_info.json # JSON with class names and optional merge map
+  m: 20                            # frames BEFORE keypose center to label as that class
+  n: 20                            # frames AFTER keypose center to label as that class
+  balance_classes: true            # rebalance so background (class 0) does not dominate
+  enable_merged_eval: false        # also evaluate on merged classes from pose_info_json
+
+data:
+  modals:                          # which sensor modalities to include
+    - pressure
+    - mocap_3d
+  pressure:
+    lod_level: 4                   # 0 = no LOD; higher = more spatial downsampling
+    norm: null                     # keep as null (no extra normalization for pressure)
+  mocap_3d:
+    norm: ZSCORE                   # built-in options: null, MINMAX, ZSCORE
+
+training:
+  device: cuda                     # 'cuda' to use GPU if available, otherwise falls back to CPU
+  lr: 1.0e-3                       # learning rate for the optimizer
+  optimizer: Adam                  # one of: SGD, Adam, AdamW
+  batch_size: 256                  # mini-batch size used by GenericClassifier
+  epochs: 20                       # number of passes over the training set
+  shuffle_train: true              # shuffle training frames within each LOSO train split
+  dataloader_workers: 0            # DataLoader workers (not used by GenericClassifier yet)
+
+classify:
+  classifier: simple_mlp           # logical name of the model (for experiment naming only)

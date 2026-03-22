@@ -1,0 +1,14 @@
+numpy
+pandas
+torch 
+torchvision 
+cython 
+ninja
+scikit_learn
+scipy
+joblib
+tensorboardX
+tqdm
+matplotlib
+pyyaml
+einops

@@ -1,0 +1,7 @@
+opencv-contrib-python
+matplotlib
+tqdm
+pandas
+numpy
+h5py
+imutils

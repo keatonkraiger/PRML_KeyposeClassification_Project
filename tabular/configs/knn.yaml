@@ -1,0 +1,39 @@
+default:
+  data_path: Taiji_dataset         # root folder containing Subject*/ modality .npy files
+  subject: all                     # which subjects to use ('all' or comma-separated list like "1,2,3")
+  log_path: log                    # parent directory for logs (created if missing)
+  results_path: Results            # where experiment folders and stats are written
+  save_model: false                # if true, save a trained model per subject
+  model_path: models               # subfolder under results_path for saved models
+  fusion: early                    # how to combine modalities; only 'early' is implemented
+  model_type: sklearn              # library used for the classifier implementation
+  keypose_csv: assets/keyposes.csv # CSV defining keypose centers per (subject, take)
+  pose_info_json: assets/pose_info.json # JSON with class names and optional merge map
+  m: 20                            # frames BEFORE keypose center to label as that class
+  n: 20                            # frames AFTER keypose center to label as that class
+  balance_classes: true            # rebalance so background (class 0) does not dominate
+  enable_merged_eval: false        # also evaluate on merged classes from pose_info_json
+data:
+  modals:                          # which sensor modalities to include
+    - pressure
+    - mocap_3d
+  pressure:
+    # Pressure is already normalized to a distribution during dataset
+    # creation, so we do not apply an additional feature-wise normalization
+    # here in the tabular pipeline.
+    # LOD is applied in data loading before flattening. It downsamples each
+    # foot map separately while preserving left/right total pressure sums.
+    lod_level: 4                   # 0 = no LOD; higher = more spatial downsampling
+    norm: null                     # keep as null (no extra normalization for pressure)
+  mocap_3d:
+    norm: ZSCORE                   # built-in options: null, MINMAX, ZSCORE
+
+training:
+  shuffle_train: true              # shuffle training frames within each LOSO train split
+  validation: false                # not used in the KNN script (placeholder for extensions)
+  dataloader_workers: 0           # not used for KNN; kept for API consistency
+
+classify:
+  classifier: knn                  # which classifier to run (here: K-Nearest Neighbors)
+  n_neighbors: 5                   # K value for KNN
+  weights: uniform                 # 'uniform' or 'distance' weighting of neighbors
