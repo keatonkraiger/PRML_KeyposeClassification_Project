@@ -3,7 +3,7 @@ import os
 import re
 
 import numpy as np
-import tabular.data.data_operations as norms
+import lib.data.data_operations as norms
 
 
 _MODAL_STEM_ALIASES = {
@@ -275,10 +275,11 @@ def early_fusion(datasets: dict, indices: list, valid_frames: list, cfg):
         norm = datasets[i].get('norm')
 
         # Pressure is already converted to a distribution during dataset
-        # creation, so we avoid any additional feature-wise normalization
-        # here in the tabular pipeline.
-        if modal_name == 'pressure':
-            norm = None
+        # creation. We may optionally do a second normalization but ensure
+        # this is your intended output.
+        if modal_name == 'pressure' and norm is not None:
+            print(f"[INFO] Applying normalization '{norm}' to pressure data in early fusion.\n \
+                  Note: Pressure data should already be normalized during dataset creation. ")
 
         # Keep the built-in options intentionally simple for students:
         #   - None   : no normalization

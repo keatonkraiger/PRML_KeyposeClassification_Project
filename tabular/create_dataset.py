@@ -5,7 +5,7 @@ import numpy as np
 import glob
 import os
 import scipy.io as sio
-from tabular.tabular.data.data_operations import *
+from tabular.data.data_operations import *
 
 """
 Dataset creation script for Taiji keypose classification.
@@ -134,6 +134,8 @@ def process_subject(sub, args, summary_records):
                     take_data = normalize_pressure_dist(take_data)
                 elif args.pressure_norm == 'max':
                     take_data = normalize_pressure_max(take_data, max_pressure)
+                elif args.pressure_norm == 'log':
+                    take_data = normalize_pressure_log(take_data, max_pressure)
                     
             else: # Is either MOCAP_3D or BODY25_V1/2
                 pose_data = take_data[..., :-1] 
@@ -154,13 +156,12 @@ def process_subject(sub, args, summary_records):
                 else:
                     pose_feats = pose_centered
                 
-                # Normalize the pose data
-                if args.pose_norm == 'mean':
-                    mean, std = compute_norm_stats(pose_feats)
-                    pose_feats = normalize(pose_feats, mean, std)
-                else:
-                    raise NotImplementedError(f"Pose normalization '{args.pose_norm}' not implemented")
-                
+                # NOTE: We intentionally do *not* apply a z-score/mean
+                # normalization here. Pose features are centered around the
+                # hip in this script, and any feature-wise normalization
+                # (e.g., ZSCORE) is handled later in the tabular pipeline
+                # via dataset_util.early_fusion based on the YAML config.
+
                 take_data = np.concatenate([pose_feats, conf_data[..., None]], axis=-1)   
 
             safe_modal = _safe_modality_name(modality)
@@ -185,8 +186,7 @@ def main():
     parser.add_argument('--modalities', nargs='+', default=['MOCAP_3D', 'Pressure'])
     parser.add_argument('--output_dir', type=str, default='Taiji_dataset')
     parser.add_argument('--pose_representation', type=str, default='quaternion', choices=['quaternion'])
-    parser.add_argument('--pose_norm', type=str, default='mean', choices=['mean'])  # Extend later
-    parser.add_argument('--pressure_norm', type=str, default='dist', choices=['dist', 'max'])
+    parser.add_argument('--pressure_norm', type=str, default='dist', choices=['dist', 'max', 'log'])
     parser.add_argument('--subjects', nargs='+', type=int, default=list(range(1, 11)))
     parser.add_argument('--downsample_rate', type=int, default=1, help='Temporal downsampling: keep every Nth frame (1=no downsampling, 5=keep every 5th frame)')
     args = parser.parse_args()

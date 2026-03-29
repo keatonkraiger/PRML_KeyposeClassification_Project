@@ -12,7 +12,7 @@ default:
   m: 20                            # frames BEFORE keypose center to label as that class
   n: 20                            # frames AFTER keypose center to label as that class
   balance_classes: true            # rebalance so background (class 0) does not dominate
-  enable_merged_eval: false        # also evaluate on merged classes from pose_info_json
+  enable_merged_eval: false # also evaluate on merged classes from pose_info_json
 data:
   modals:                          # which sensor modalities to include
     - pressure
@@ -24,7 +24,7 @@ data:
     # LOD is applied in data loading before flattening. It downsamples each
     # foot map separately while preserving left/right total pressure sums.
     lod_level: 4                   # 0 = no LOD; higher = more spatial downsampling
-    norm: null                     # keep as null (no extra normalization for pressure)
+    norm:                           #  options: null, MINMAX, ZSCORE. You optionally may do a second normalization on the normalized data coming out of prepare data.
   mocap_3d:
     norm: ZSCORE                   # built-in options: null, MINMAX, ZSCORE
 

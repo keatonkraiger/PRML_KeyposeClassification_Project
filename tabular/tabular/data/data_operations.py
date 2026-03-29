@@ -69,15 +69,32 @@ def convert_to_euler(pose_data, center_joint):
 
 
 #------------- Data normalization functions -------------#
-def normalize_pressure_dist(frame):
-    """Normalize a pressure frame into a probability distribution."""
-    total = np.nansum(frame)
-    return frame / total if total > 0 else frame
+def normalize_pressure_dist(data):
+    """Normalize pressure maps into per-frame probability distributions.
+
+    Expects pressure data where the last two dimensions are spatial/foot
+    dimensions (e.g. (N, T, 60, 21, 2) or (N, 60, 21, 2)). Each frame is
+    normalized by the sum over those last two dimensions so that every
+    per-frame map sums to 1, instead of normalizing by the total over the
+    entire sequence.
+    """
+    data = np.asarray(data, dtype=np.float32)
+
+    # Sum over spatial + foot dimensions only, keep leading dims (N, T, ...).
+    totals = np.nansum(data, axis=(1, 2, 3), keepdims=True)
+
+    # Avoid divide-by-zero: frames with non-positive total are left unchanged.
+    safe_totals = np.where(totals > 0, totals, 1.0)
+    normalized = data / safe_totals
+    return np.where(totals > 0, normalized, data)
 
 def normalize_pressure_max(data, max_val):
     """Divide each frame by a subject-wise max pressure value."""
     return data / (max_val + 1e-8)
 
+def normalize_pressure_log(data, max_val):
+    """Apply a log transform to pressure data, scaled by the max pressure."""
+    return np.log1p(data) / np.log1p(max_val)
 
 def log(data):
     """Element-wise log transform with basic numerical safety.
@@ -211,8 +228,11 @@ def apply_lod(pressure_data, lod_level):
     if n_feet != 2:
         raise ValueError(f"Expected 2 feet (left/right), got {n_feet}")
     
-    # Apply LOD downsampling progressively
-    current_data = pressure_data.copy()
+    # Apply LOD downsampling progressively.
+    # Treat NaNs as missing sensors that should not contribute to a
+    # neighborhood sum: replace them with 0 for the pooling so that
+    # valid values are preserved and NaNs do not poison the sum.
+    current_data = np.nan_to_num(pressure_data.copy(), nan=0.0)
     for _ in range(lod_level):
         row_idx = np.arange(0, current_data.shape[1], 2)
         col_idx = np.arange(0, current_data.shape[2], 2)
