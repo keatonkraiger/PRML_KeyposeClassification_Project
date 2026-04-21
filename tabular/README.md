@@ -13,7 +13,7 @@ pip install -e .
 
 ## Data
 
-We provide a smaller version of the official PSUTMM-100 dataset which includes only 3D MoCap and foot pressure data (the only two required modalities for this project) available [here](). If you want to use other modalities (MoCap marker, video, etc.) you will need to download the request access to the full dataset from the [official dataset request page](https://forms.office.com/r/ceCgdJGkE7). After downloading the data, you can generate the processed dataset with the following command:
+We provide a smaller version of the official PSUTMM-100 dataset which includes only 3D MoCap and foot pressure data (the only two required modalities for this project). The link to the data may be found in the project description. If you want to use other modalities (MoCap marker, video, etc.) you will need to download the request access to the full dataset from the [official dataset request page](https://forms.office.com/r/ceCgdJGkE7). After downloading the data, you can generate the processed dataset with the following command:
 
 ```bash
 python create_dataset.py --data_path PSU_Data
